@@ -36,9 +36,14 @@ function calculateBonusByProfit(index, total, seller) {
  * @returns {{revenue, top_products, bonus, name, sales_count, profit, seller_id}[]}
  */
 function analyzeSalesData(data, options) {
-  if (!data || !Array.isArray(data.sellers) || data.sellers.length === 0) {
-    throw new Error("Некорректные входные данные");
-  } // @TODO: Проверка входных данных
+  if (
+  !data ||
+  !Array.isArray(data.sellers) || data.sellers.length === 0 ||
+  !Array.isArray(data.products) || data.products.length === 0 ||
+  !Array.isArray(data.purchase_records) || data.purchase_records.length === 0
+) {
+  throw new Error("Некорректные входные данные");
+} // @TODO: Проверка входных данных
 
   const { calculateRevenue, calculateBonus } = options;
   if (
@@ -60,6 +65,7 @@ function analyzeSalesData(data, options) {
   const sellerIndex = Object.fromEntries(
     sellerStats.map((seller) => [seller.id, seller])
   );
+
   const productIndex = Object.fromEntries(
     data.products.map((product) => [product.sku, product])
   ); // @TODO: Индексация продавцов и товаров для быстрого доступа
@@ -75,11 +81,11 @@ function analyzeSalesData(data, options) {
 
     record.items.forEach((item) => {
       const product = productIndex[item.sku]; // Товар
-      const cost = product.purchase_price * item.quantity; // Посчитать себестоимость (cost) товара как product.purchase_price, умноженную на количество товаров из чека
-      const revenue = +calculateRevenue(item, product).toFixed(2); // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
-      seller.revenue += revenue; 
+      const cost = (product.purchase_price * item.quantity); // Посчитать себестоимость (cost) товара как product.purchase_price, умноженную на количество товаров из чека
+      const revenue = calculateRevenue(item, product); // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
+      seller.revenue = seller.revenue + revenue; 
       const profit = revenue - cost; // Посчитать прибыль: выручка минус себестоимость
-      seller.profit += profit; // Увеличить общую накопленную прибыль (profit) у продавца
+      seller.profit = seller.profit + profit; // Увеличить общую накопленную прибыль (profit) у продавца
 
       // Учёт количества проданных товаров
       if (!seller.products_sold[item.sku]) {
@@ -98,6 +104,7 @@ function analyzeSalesData(data, options) {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 10);
   }); // Формируем топ-10 товаров
+  
   // @TODO: Назначение премий на основе ранжирования
 
   return sortedSellers.map((seller) => ({
