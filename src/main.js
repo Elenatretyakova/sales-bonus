@@ -76,7 +76,7 @@ function analyzeSalesData(data, options) {
     record.items.forEach((item) => {
       const product = productIndex[item.sku]; // Товар
       const cost = product.purchase_price * item.quantity; // Посчитать себестоимость (cost) товара как product.purchase_price, умноженную на количество товаров из чека
-      const revenue = +calculateSimpleRevenue(item, product).toFixed(2); // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
+      const revenue = +calculateRevenue(item, product).toFixed(2); // Посчитать выручку (revenue) с учётом скидки через функцию calculateRevenue
       seller.revenue += revenue; 
       const profit = revenue - cost; // Посчитать прибыль: выручка минус себестоимость
       seller.profit += profit; // Увеличить общую накопленную прибыль (profit) у продавца
@@ -92,7 +92,7 @@ function analyzeSalesData(data, options) {
   const sortedSellers = [...sellerStats].sort((a, b) => b.profit - a.profit); // @TODO: Сортировка продавцов по прибыли
 
   sortedSellers.forEach((seller, index) => {
-    seller.bonus = calculateBonusByProfit(index, sortedSellers.length, seller); // Считаем бонус
+    seller.bonus = calculateBonus(index, sortedSellers.length, seller); // Считаем бонус
     seller.top_products = Object.entries(seller.products_sold)
       .map(([sku, quantity]) => ({ sku, quantity }))
       .sort((a, b) => b.quantity - a.quantity)
